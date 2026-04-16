@@ -41,6 +41,12 @@ export default function Home() {
     setUserList((prev) => prev.filter((u) => u.id !== id));
   };
 
+  // 5.리스트 전체삭제
+  const handleDeleteAll = () => {
+    setUserList([]);
+  };
+
+
   return (
     <main className="flex min-h-screen flex-col items-center p-12 bg-gray-50 text-black">
       <div className="w-full max-w-2xl bg-white p-6 rounded-xl shadow-md">
@@ -75,6 +81,12 @@ export default function Home() {
             className="bg-blue-600 text-white rounded font-bold"
           >
             추가하기
+          </button>
+          <button
+            onClick={handleDeleteAll}
+            className="bg-red-700 text-black rounded font-bold"
+          >
+            삭제하기
           </button>
         </div>
 
