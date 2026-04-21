@@ -10,42 +10,50 @@ type User = {
   email: string;
 };
 
+// export default function Home() {
+//   const [user, setUser] = useState({ name: "", age: "", email: "" });
+//   const [userList, setUserList] = useState<User[]>([]);
+
+// 2. [Load] 화면이 처음 켜질 때 로컬 스토리지에서 데이터 가져오기 (Winform_Load 역할)
+// useEffect(() => {
+//   const savedData = localStorage.getItem("user-practice-list");
+//   if (savedData) {
+// eslint-disable-next-line react-hooks/set-state-in-effect
+//     setUserList(JSON.parse(savedData)); // 문자열을 객체 배열로 변환
+//   }
+// }, []); // []는 "처음 한 번만 실행"을 의미합니다.
+
 export default function Home() {
   const [user, setUser] = useState({ name: "", age: "", email: "" });
-  const [userList, setUserList] = useState<User[]>([])    // 빈 배열로 시작
-
- // 데이터를 가져오는 함수 (Winform의 LoadDataFromServer)
-  const fetchUsers = async () => {
-    const response = await fetch("/api/users"); // 서버 API 호출
-    const data = await response.json();
-    setUserList(data);
-  };
-  // 화면이 로드될 때 실행 | 주석으로 eslint 오류 표기 예외처리
+  // 2. [Load] useState의 lazy initializer로 초기값을 로컬 스토리지에서 가져오기
+  const [userList, setUserList] = useState<User[]>(() => {
+    const savedData = localStorage.getItem("user-practice-list");
+    if (savedData) {
+      try {
+        return JSON.parse(savedData) as User[];
+      } catch {
+        localStorage.removeItem("user-practice-list");
+      }
+    }
+    return [];
+  });
+  // 3. [Save] userList가 변경될 때마다 자동으로 로컬 스토리지에 저장 (자동 저장 로직)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchUsers();
-  }, []);         // [] 마운트 시 1번 실행
+    // 주의: userList가 초기값([])일 때 덮어씌워지지 않도록 체크 로직을 넣기도 하지만,
+    // 여기서는 변화가 감지될 때마다 동기화하는 방식을 씁니다.
+    localStorage.setItem("user-practice-list", JSON.stringify(userList));
+  }, [userList]); // [userList]는 "userList가 바뀔 때마다 실행"을 의미합니다.
 
-  // 글자가 입력될 때만다 실행되는 함수, 기존값 유지하고, 방금건드린 칸의 값만 바꿈
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 추가 버튼 클릭 시 서버로 전송
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (!user.name) return alert("이름을 입력하세요.");
-    
-    const response = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user),
-    });
-
-    if (response.ok) {
-      fetchUsers(); // 서버 저장 성공 시 리스트 다시 불러오기
-      setUser({ name: "", age: "", email: "" });
-    }
+    const newUser = { ...user, id: Date.now() };
+    setUserList((prev) => [...prev, newUser]);
+    setUser({ name: "", age: "", email: "" });
   };
 
   const handleDelete = (id: number) => {
