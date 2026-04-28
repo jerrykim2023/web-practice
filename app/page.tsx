@@ -12,11 +12,15 @@ type User = {
 
 export default function Home() {
   const [user, setUser] = useState({ name: "", age: "", email: "" });
-  const [userList, setUserList] = useState<User[]>([])    // 빈 배열로 시작
+  const [userList, setUserList] = useState<User[]>([]); // 빈 배열로 시작
 
- // 데이터를 가져오는 함수 (Winform의 LoadDataFromServer)
+  // 데이터를 가져오는 함수 (Winform의 LoadDataFromServer)
   const fetchUsers = async () => {
-    const response = await fetch("/api/users"); // 서버 API 호출
+    const response = await fetch("/api/users");
+    if (!response.ok) {
+      console.error("API 오류:", response.status, await response.text());
+      return;
+    }
     const data = await response.json();
     setUserList(data);
   };
@@ -24,7 +28,7 @@ export default function Home() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
-  }, []);         // [] 마운트 시 1번 실행
+  }, []); // [] 마운트 시 1번 실행
 
   // 글자가 입력될 때만다 실행되는 함수, 기존값 유지하고, 방금건드린 칸의 값만 바꿈
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +39,7 @@ export default function Home() {
   // 추가 버튼 클릭 시 서버로 전송
   const handleAdd = async () => {
     if (!user.name) return alert("이름을 입력하세요.");
-    
+
     const response = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
