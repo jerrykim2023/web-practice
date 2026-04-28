@@ -5,8 +5,13 @@ import { NextResponse } from 'next/server'
 
 // GET /api/users → 전체 조회
 export async function GET() {
-  const users = await prisma.user.findMany()
-  return NextResponse.json(users)
+  try {
+    const users = await prisma.user.findMany()
+    return NextResponse.json(users)
+  } catch (err) {
+    console.error('DB 조회 오류:', err)
+    return NextResponse.json({ error: 'DB 조회 실패' }, { status: 500 })
+  }
 }
 
 // POST /api/users → 신규 등록
